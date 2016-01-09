@@ -1,0 +1,52 @@
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <title>Index</title>
+</head>
+<body>
+<div id="result"></div>
+<script type="text/javascript" charset="utf-8" src="/bower_components/jquery/dist/jquery.js"></script>
+<script type="text/javascript" charset="utf-8">
+  var db = {
+    close : function () { console.info('database is closed'); return; },
+    save : function (data) { console.info(data); return; }
+  };
+
+  var p = $.Deferred();
+
+  var finished = false;
+  var amount = 0;
+  $('document').ready(function () {
+    var a = $.get('/data.json')
+    .then(function (response) {
+      console.info(response);
+      return response;
+    }).then( function (a) {
+      var numbers = a.data;
+      numbers.forEach( function (v) {
+        $.get("/?" + v).done(function (data) {
+          amount++;
+          db.save();
+          if (amount === numbers.length) {
+            finished = true;
+          }
+        });
+      });
+    }).then( function (c) {
+      console.log(c);
+    });
+
+    var inter = setInterval(function () {
+      if (finished) {
+        // make sure its on the last promise, thing that get's call
+        db.close();
+        clearInterval(inter);
+      }
+    }, 1000);
+  });
+</script>
+</body>
+
+<!-- // then you pass two functions then(done, fail) -->
+<!-- // done is syntax sugar for the first function of then -->
+<!-- // fail is syntax sugar too, for the second function -->
